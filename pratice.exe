@@ -1,6 +1,175 @@
 <!DOCTYPE html>
+<html lang="en">
 <head>
-    <body>
-        <title>WELCOME ALL</title>
-    </body>
+  <meta charset="UTF-8">
+  <title>Emoji Catching Game</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #f2f2f2;
+      font-family: Arial, sans-serif;
+      overflow: hidden;
+    }
+    #gameArea {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      background: linear-gradient(to top, #c9d6ff, #e2e2e2);
+      overflow: hidden;
+    }
+    #basket {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 50px;
+      cursor: pointer;
+    }
+    .emoji {
+      position: absolute;
+      top: 0;
+      font-size: 40px;
+      animation: fall linear;
+    }
+    #scoreBoard {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      font-size: 20px;
+      background: rgba(255, 255, 255, 0.8);
+      padding: 5px 10px;
+      border-radius: 5px;
+    }
+    #livesBoard {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 20px;
+      background: rgba(255, 255, 255, 0.8);
+      padding: 5px 10px;
+      border-radius: 5px;
+    }
+    #gameOver {
+      display: none;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.8);
+      color: #fff;
+      font-size: 30px;
+      padding: 20px 40px;
+      border-radius: 10px;
+      text-align: center;
+    }
+    button {
+      margin-top: 15px;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      background: #fff;
+    }
+    button:hover {
+      background: #ddd;
+    }
+    @keyframes fall {
+      from { top: -50px; }
+      to { top: 100vh; }
+    }
+  </style>
 </head>
+<body>
+  <div id="gameArea">
+    <div id="basket">🧺</div>
+    <div id="scoreBoard">Score: 0</div>
+    <div id="livesBoard">Lives: 3</div>
+    <div id="gameOver">
+      Game Over<br>
+      <span id="finalScore"></span><br>
+      <button onclick="restartGame()">Restart</button>
+    </div>
+  </div>
+
+  <script>
+    const basket = document.getElementById('basket');
+    const gameArea = document.getElementById('gameArea');
+    const scoreBoard = document.getElementById('scoreBoard');
+    const livesBoard = document.getElementById('livesBoard');
+    const gameOverDiv = document.getElementById('gameOver');
+    const finalScore = document.getElementById('finalScore');
+    
+    let basketPos = window.innerWidth / 2;
+    let score = 0;
+    let lives = 3;
+    let gameInterval;
+    let dropSpeed = 4000; // fall duration in ms
+    const emojis = ['🍎','🍌','🍊','🍒','🍇','🍓','🍍','🥭','🥝','🍑'];
+    
+    // Move basket with arrow keys
+    document.addEventListener('keydown', e => {
+      if (e.key === 'ArrowLeft') {
+        basketPos -= 50;
+        if (basketPos < 0) basketPos = 0;
+      } else if (e.key === 'ArrowRight') {
+        basketPos += 50;
+        if (basketPos > window.innerWidth - 50) basketPos = window.innerWidth - 50;
+      }
+      basket.style.left = basketPos + 'px';
+    });
+
+    function startGame() {
+      gameInterval = setInterval(dropEmoji, 1200);
+    }
+
+    function dropEmoji() {
+      const emoji = document.createElement('div');
+      emoji.classList.add('emoji');
+      emoji.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+      emoji.style.left = Math.random() * (window.innerWidth - 50) + 'px';
+      emoji.style.animationDuration = dropSpeed/1000 + 's';
+      gameArea.appendChild(emoji);
+
+      const fallInterval = setInterval(() => {
+        const emojiRect = emoji.getBoundingClientRect();
+        const basketRect = basket.getBoundingClientRect();
+
+        // Check collision
+        if (emojiRect.bottom >= basketRect.top &&
+            emojiRect.left < basketRect.right &&
+            emojiRect.right > basketRect.left) {
+          score++;
+          scoreBoard.textContent = 'Score: ' + score;
+          emoji.remove();
+          clearInterval(fallInterval);
+        }
+
+        // If emoji passes basket
+        if (emojiRect.top > window.innerHeight) {
+          lives--;
+          livesBoard.textContent = 'Lives: ' + lives;
+          emoji.remove();
+          clearInterval(fallInterval);
+          if (lives <= 0) {
+            endGame();
+          }
+        }
+      }, 50);
+    }
+
+    function endGame() {
+      clearInterval(gameInterval);
+      gameOverDiv.style.display = 'block';
+      finalScore.textContent = 'Your Score: ' + score;
+    }
+
+    function restartGame() {
+      location.reload();
+    }
+
+    startGame();
+  </script>
+</body>
+</html>
