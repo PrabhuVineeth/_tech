@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Emoji Catching Game</title>
+  <!-- ✅ Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      overflow: hidden;
+    }
+    .emoji {
+      position: absolute;
+      top: 0;
+      font-size: 40px;
+      animation: fall linear;
+    }
+    #basket {
+      font-size: 50px;
+      cursor: pointer;
+    }
+    @keyframes fall {
+      from { top: -50px; }
+      to { top: 100vh; }
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-t from-indigo-200 to-gray-200 font-sans m-0 p-0">
+
+  <div id="gameArea" class="relative w-screen h-screen overflow-hidden">
+    
+    <div id="basket" class="absolute bottom-5 left-1/2 -translate-x-1/2 transition-all duration-200">🧺</div>
+    
+    <!-- Score -->
+    <div id="scoreBoard" class="absolute top-4 left-4 bg-white bg-opacity-70 text-gray-800 text-lg px-4 py-2 rounded-lg shadow-md">
+      Score: 0
+    </div>
+
+    <!-- Lives -->
+    <div id="livesBoard" class="absolute top-4 right-4 bg-white bg-opacity-70 text-gray-800 text-lg px-4 py-2 rounded-lg shadow-md">
+      Lives: 3
+    </div>
+
+    <!-- Game Over Panel -->
+    <div id="gameOver" class="hidden absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black bg-opacity-80 text-white text-2xl p-8 rounded-xl shadow-lg text-center space-y-4">
+      <div>Game Over</div>
+      <div id="finalScore" class="text-xl font-semibold"></div>
+      <button onclick="restartGame()" class="bg-white text-black px-5 py-2 rounded-md hover:bg-gray-300 transition">
+        Restart
+      </button>
+    </div>
+    
+  </div>
+
+  <script>
+    const basket = document.getElementById('basket');
+    const gameArea = document.getElementById('gameArea');
+    const scoreBoard = document.getElementById('scoreBoard');
+    const livesBoard = document.getElementById('livesBoard');
+    const gameOverDiv = document.getElementById('gameOver');
+    const finalScore = document.getElementById('finalScore');
+    
+    let basketPos = window.innerWidth / 2;
+    let score = 0;
+    let lives = 3;
+    let gameInterval;
+    let dropSpeed = 4000; // fall duration in ms
+    const emojis = ['🍎','🍌','🍊','🍒','🍇','🍓','🍍','🥭','🥝','🍑'];
+    
+    // Move basket with arrow keys
+    document.addEventListener('keydown', e => {
+      if (e.key === 'ArrowLeft') {
+        basketPos -= 50;
+        if (basketPos < 0) basketPos = 0;
+      } else if (e.key === 'ArrowRight') {
+        basketPos += 50;
+        if (basketPos > window.innerWidth - 50) basketPos = window.innerWidth - 50;
+      }
+      basket.style.left = basketPos + 'px';
+    });
+
+    function startGame() {
+      gameInterval = setInterval(dropEmoji, 1200);
+    }
+
+    function dropEmoji() {
+      const emoji = document.createElement('div');
+      emoji.classList.add('emoji');
+      emoji.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+      emoji.style.left = Math.random() * (window.innerWidth - 50) + 'px';
+      emoji.style.animationDuration = dropSpeed/1000 + 's';
+      gameArea.appendChild(emoji);
+
+      const fallInterval = setInterval(() => {
+        const emojiRect = emoji.getBoundingClientRect();
+        const basketRect = basket.getBoundingClientRect();
+
+        // Check collision
+        if (emojiRect.bottom >= basketRect.top &&
+            emojiRect.left < basketRect.right &&
+            emojiRect.right > basketRect.left) {
+          score++;
+          scoreBoard.textContent = 'Score: ' + score;
+          emoji.remove();
+          clearInterval(fallInterval);
+        }
+
+        // If emoji passes basket
+        if (emojiRect.top > window.innerHeight) {
+          lives--;
+          livesBoard.textContent = 'Lives: ' + lives;
+          emoji.remove();
+          clearInterval(fallInterval);
+          if (lives <= 0) {
+            endGame();
+          }
+        }
+      }, 50);
+    }
+
+    function endGame() {
+      clearInterval(gameInterval);
+      gameOverDiv.classList.remove('hidden');
+      finalScore.textContent = 'Your Score: ' + score;
+    }
+
+    function restartGame() {
+      location.reload();
+    }
+
+    startGame();
+  </script>
+</body>
+</html>
