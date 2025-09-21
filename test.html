@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Weather Test</title>
+</head>
+<body>
+  <h1>Weather Now!</h1>
+  <input id="city" placeholder="Enter city" />
+  <button id="btn">Get Weather</button>
+  <div id="result"></div>
+
+  <script>
+    const btn = document.getElementById('btn');
+    const input = document.getElementById('city');
+    const result = document.getElementById('result');
+
+    btn.addEventListener('click', async () => {
+      const city = input.value.trim();
+      if (!city) return alert("Enter a city!");
+
+      try {
+        const res = await fetch(`https://wttr.in/${city}?format=j1`);
+        const data = await res.json();
+        const current = data.current_condition[0];
+
+        result.innerHTML = `
+          <p><strong>City:</strong> ${city}</p>
+          <p><strong>Temp:</strong> ${current.temp_C}°C</p>
+          <p><strong>Condition:</strong> ${current.weatherDesc[0].value}</p>
+        `;
+      } catch (err) {
+        result.innerHTML = `<p style="color:red;">Error: ${err.message}</p>`;
+      }
+    });
+  </script>
+</body>
+</html>
